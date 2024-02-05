@@ -44,11 +44,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-connected_robots = {}
-connected_user = {}
-user_to_robot = {}
+
+# NOTE - we can also use redis to save rather than using the dict.
+connected_robots = {}  # List of all Connected Robots
+connected_user = {}  # List of all Connected User
+user_to_robot = {}  # User to Robot Connection
+
+# Redis Keys
 h_key = "HT:"  # HOST TOKEN
 c_key = "CT:"  # CLIENT TOKEN
+
+# TOKEN KEY EXPIRATION IN REDIS
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -78,7 +84,8 @@ async def get_host_token(machine_id: str, user_id: str = None):
                 logger.info(f"{user_id} already connected to -> {machine_id}")
                 return {"error": f"{user_id} already connected to -> {machine_id}"}
             elif user_id in user_to_robot.values():
-                logger.error(f"{user_id} is already connected with another robot")
+                logger.error(
+                    f"{user_id} is already connected with another robot")
                 return {"error": f"{user_id} is already connected with another robot"}
             else:
                 logger.error("Remote Connection is already in use...!!!")
@@ -121,10 +128,12 @@ async def to_robot(websocket: WebSocket, from_robot: dict):
                 logger.info(f"Robot Connected - {from_robot['machine_id']}")
                 await sent_message(
                     websocket=websocket,
-                    message={"message": "Successfully Connected with the Robot!!"},
+                    message={
+                        "message": "Successfully Connected with the Robot!!"},
                 )
         msg_from_robot = await receive_message(websocket=websocket)
-        logger.info(f"Host Token received from the Robot - {from_robot['machine_id']}")
+        logger.info(
+            f"Host Token received from the Robot - {from_robot['machine_id']}")
         set_h_key = h_key + msg_from_robot["machine_id"]
         await redis.set(
             set_h_key, msg_from_robot["host_token"], ex=access_token_expires
