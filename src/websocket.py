@@ -132,27 +132,28 @@ async def to_robot(websocket: WebSocket, from_robot: dict):
                         "message": "Successfully Connected with the Robot!!"},
                 )
         msg_from_robot = await receive_message(websocket=websocket)
-        logger.info(
-            f"Host Token received from the Robot - {from_robot['machine_id']}")
-        set_h_key = h_key + msg_from_robot["machine_id"]
-        await redis.set(
-            set_h_key, msg_from_robot["host_token"], ex=access_token_expires
-        )
-        # Sent Client token back to the Robot
-        get_c_key = c_key + msg_from_robot["machine_id"]
-        while True:
-            # we have two option either use the user to check which robot was the user connected to so we can check the right websocket connection to sent back the client token or if we use thread every single time a new connection happens it starts a new thread. have to play with it a little more.
-            get_client_token = await redis.get(get_c_key)
-            if get_client_token is not None:
-                await sent_message(
-                    websocket=websocket,
-                    message={"client_token": get_client_token},
-                )
-                logger.info(
-                    f"Sent Client Token back to Robot - {from_robot['machine_id']}"
-                )
-                await redis.delete(get_c_key)
-                break
+        if msg_from_robot:
+            logger.info(
+                f"Host Token received from the Robot - {from_robot['machine_id']}")
+            set_h_key = h_key + msg_from_robot["machine_id"]
+            await redis.set(
+                set_h_key, msg_from_robot["host_token"], ex=access_token_expires
+            )
+            # Sent Client token back to the Robot
+            get_c_key = c_key + msg_from_robot["machine_id"]
+            while True:
+                # we have two option either use the user to check which robot was the user connected to so we can check the right websocket connection to sent back the client token or if we use thread every single time a new connection happens it starts a new thread. have to play with it a little more.
+                get_client_token = await redis.get(get_c_key)
+                if get_client_token is not None:
+                    await sent_message(
+                        websocket=websocket,
+                        message={"client_token": get_client_token},
+                    )
+                    logger.info(
+                        f"Sent Client Token back to Robot - {from_robot['machine_id']}"
+                    )
+                    await redis.delete(get_c_key)
+                    break
     except Exception as e:
         logger.error(f"Exception while connecting to robot - {str(e)}")
 
