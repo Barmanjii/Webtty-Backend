@@ -58,6 +58,9 @@ c_key = "CT:"  # CLIENT TOKEN
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
+# NOTE - as soon as the connection breaks from the robot need to update the list.
+# NOTE - Have to change the code of WebTTY Host.go so after quitting / logging out it should clean the terminal or forcefully close it.
+
 
 @app.post("/client_token")
 async def send_client_token(machine_id: str, client_token: str):
