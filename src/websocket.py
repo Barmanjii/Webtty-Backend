@@ -223,4 +223,4 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    uvicorn.run("websocket:app", host="0.0.0.0", port=2323, reload=True)
+    uvicorn.run("websocket:app", host="localhost", port=2323, reload=True)
